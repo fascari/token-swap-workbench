@@ -1,0 +1,95 @@
+# token-swap-workbench - Architecture
+
+## Overview
+
+
+
+This service follows a **clean architecture** with clear separation of concerns across three layers:
+
+```
+┌─────────────────────────────────────────────────┐
+│             HTTP API (Chi Router)               │
+│              cmd/api/main.go                    │
+└──────────────────┬──────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────┐
+│      Bootstrap & Domain Module Registration     │
+│    internal/bootstrap/ + cmd/api/modules/       │
+└──────────────────┬──────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────┐
+│        Handler (HTTP ↔ Domain boundary)         │
+│   internal/app/{domain}/handler/{action}/       │
+└──────────────────┬──────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────┐
+│          Use Case (Business Logic)              │
+│   internal/app/{domain}/usecase/{action}/       │
+└──────────────────┬──────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────┐
+│        Repository (Data Access / GORM)          │
+│       internal/app/{domain}/repository/         │
+└──────────────────┬──────────────────────────────┘
+                   │
+                   ↓
+┌─────────────────────────────────────────────────┐
+│     Shared Packages (pkg/ — public API)         │
+│  pkg/apperror  pkg/http  pkg/logger  pkg/validator
+└─────────────────────────────────────────────────┘
+```
+
+## Package layout
+
+```
+token-swap-workbench/
+├── cmd/api/
+│   ├── main.go             — entry point (init logger, bootstrap, run)
+│   └── modules/
+│       ├── types.go        — Module interface
+│       └── example.go      — wires example domain (repo → usecase → handler)
+├── internal/
+│   ├── app/{domain}/
+│   │   ├── domain/         — entities, value objects
+│   │   ├── errors.go       — domain-level error codes
+│   │   ├── handler/{action}/ — HTTP handler, DTO, test
+│   │   ├── usecase/{action}/ — business logic, mocks
+│   │   └── repository/     — interface + GORM/in-memory impl
+│   ├── bootstrap/          — wires infrastructure (DB, telemetry, router, server)
+│   ├── config/             — config structs + Viper loader
+│   ├── database/           — GORM postgres connect + tx helpers
+│   ├── middleware/         — chi middleware (request-id, logger)
+│   └── testing/integration/ — testcontainers-based integration test suite
+└── pkg/
+    ├── apperror/           — typed application errors
+    ├── http/               — JSON read/write helpers
+    ├── logger/             — zerolog global init
+    ├── validator/          — go-playground/validator singleton
+```
+
+## pkg/ vs internal/
+
+| Location | Purpose |
+|----------|---------|
+| `pkg/`   | Reusable across projects — no import of `internal/` |
+| `internal/app/` | Domain logic: handlers, use cases, repositories |
+| `internal/bootstrap/` | Infrastructure wiring only |
+
+## Request flow
+
+1. **HTTP request** → Chi router in `cmd/api`
+2. **Handler** decodes body, validates, calls use case
+3. **Use case** applies business rules, calls repository
+4. **Repository** interacts with the DB
+5. **Response** marshalled back via `pkg/http.WriteJSON`
+
+## Design principles
+
+- **Single responsibility**: each layer has one job
+- **Dependency injection**: constructors accept interfaces, not concrete types
+- **Testability**: interfaces at layer boundaries enable mocking
+- **Configuration**: env vars via Viper (env > yaml > defaults)

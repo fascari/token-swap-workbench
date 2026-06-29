@@ -1,0 +1,50 @@
+[tools]
+go = "1.26.1"
+
+
+[env]
+GOWORK = "off"
+_.file = ".env"
+
+[tasks.test]
+description = "Run unit tests"
+run = "go test -v ./..."
+
+[tasks.lint]
+description = "Run linter"
+run = "golangci-lint run"
+
+[tasks.tidy]
+description = "Tidy dependencies in every workspace module"
+run = "go mod tidy"
+
+[tasks.build]
+description = "Build the application"
+run = "go build -o bin/app ./cmd/api"
+
+[tasks.fmt]
+description = "Format code"
+run = "go fmt ./..."
+
+
+[tasks.run]
+description = "Run the service"
+run = "go run ./cmd/api"
+
+
+[tasks."integration"]
+description = "Run integration tests (requires Docker)"
+run = "go test -tags=integration -v ./internal/testing/..."
+
+[tasks."e2e:up"]
+description = "Start postgres for integration tests (port 25432)"
+run = "docker compose -f docker-compose.e2e.yml up -d"
+
+[tasks."e2e:down"]
+description = "Stop integration test infrastructure"
+run = "docker compose -f docker-compose.e2e.yml down"
+
+
+[tasks.mocks]
+description = "Generate mocks"
+run = "mockery"

@@ -1,0 +1,1 @@
+/home/felipeascari/dev/pessoal/atlas/ai-config/providers/codex/AGENTS.md
