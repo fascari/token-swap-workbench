@@ -13,6 +13,7 @@ linters:
     enable:
         - bodyclose
         - decorder
+        - grouper
         - goconst
         - gocyclo
         - misspell
@@ -22,6 +23,10 @@ linters:
         - unconvert
         - unparam
     settings:
+        grouper:
+            const-require-grouping: true
+            type-require-grouping: true
+            var-require-grouping: true
         decorder:
             dec-order:
                 - const

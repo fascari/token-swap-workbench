@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/fascari/token-swap-workbench/cmd/api/modules"
 	"github.com/fascari/token-swap-workbench/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 )
 
-func NewRouter(modulesList ...modules.Module) chi.Router {
+type (
+	module interface {
+		Register(r chi.Router)
+	}
+)
+
+func NewRouter(modulesList ...module) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

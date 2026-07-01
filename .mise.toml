@@ -6,13 +6,17 @@ node = "22.23.0"
 GOWORK = "off"
 _.file = ".env"
 
-[tasks.test]
+[tasks.unit]
 description = "Run unit tests"
 run = "go test -v ./..."
 
 [tasks.integration]
 description = "Run deterministic integration tests"
-run = "go test -tags=integration ./internal/testing/integration/..."
+run = "go test -v -tags=integration ./internal/app/chain/test/..."
+
+[tasks.test]
+description = "Run all tests (unit + integration)"
+depends = ["unit", "integration"]
 
 [tasks.lint]
 description = "Run linter"

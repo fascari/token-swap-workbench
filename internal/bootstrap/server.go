@@ -15,10 +15,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type App struct {
-	router chi.Router
-	server *http.Server
-}
+type (
+	App struct {
+		router chi.Router
+		server *http.Server
+	}
+)
 
 func New(cfg *config.Config) (*App, error) {
 	chainClient, err := chainclient.New(cfg.Chain)
@@ -26,13 +28,13 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, fmt.Errorf("creating chain client: %w", err)
 	}
 
-	app := &App{}
+	app := new(App)
 	app.router = NewRouter(modules.NewChainModule(chainClient))
 
-	app.server = &http.Server{
+	app.server = new(http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
 		Handler: app.router,
-	}
+	})
 
 	return app, nil
 }

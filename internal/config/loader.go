@@ -48,7 +48,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid HTTP_IDLE_TIMEOUT: %w", err)
 	}
 
-	return &Config{
+	return new(Config{
 		App: AppConfig{
 			Name: viper.GetString("APP_NAME"),
 			Env:  viper.GetString("APP_ENV"),
@@ -66,5 +66,5 @@ func Load() (*Config, error) {
 		Chain: ChainConfig{
 			BaseURL: viper.GetString("CHAIN_BASE_URL"),
 		},
-	}, nil
+	}), nil
 }
