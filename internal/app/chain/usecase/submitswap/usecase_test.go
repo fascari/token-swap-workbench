@@ -9,6 +9,7 @@ import (
 	chaintestdata "github.com/fascari/token-swap-workbench/internal/app/chain/testdata"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/submitswap"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/submitswap/mocks"
+	swaptestdata "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/submitswap/testdata"
 )
 
 func TestUseCase_Execute_ShouldSubmitSwapWhenClientAcceptsTransaction(t *testing.T) {
@@ -18,15 +19,10 @@ func TestUseCase_Execute_ShouldSubmitSwapWhenClientAcceptsTransaction(t *testing
 
 	uc := submitswap.NewUseCase(client)
 
-	output, err := uc.Execute(t.Context(), submitswap.Input{
-		AccountID: swap.AccountID,
-		InToken:   swap.InToken,
-		OutToken:  swap.OutToken,
-		AmountIn:  swap.AmountIn,
-	})
+	output, err := uc.Execute(t.Context(), swaptestdata.Input())
 
 	require.NoError(t, err)
-	require.Equal(t, submitswap.Output{Status: "submitted"}, output)
+	require.Equal(t, swaptestdata.Output(), output)
 }
 
 func TestUseCase_Execute_ShouldReturnErrorWhenClientSubmitFails(t *testing.T) {
@@ -37,12 +33,7 @@ func TestUseCase_Execute_ShouldReturnErrorWhenClientSubmitFails(t *testing.T) {
 
 	uc := submitswap.NewUseCase(client)
 
-	output, err := uc.Execute(t.Context(), submitswap.Input{
-		AccountID: swap.AccountID,
-		InToken:   swap.InToken,
-		OutToken:  swap.OutToken,
-		AmountIn:  swap.AmountIn,
-	})
+	output, err := uc.Execute(t.Context(), swaptestdata.Input())
 
 	require.Error(t, err)
 	require.ErrorIs(t, err, expectedErr)

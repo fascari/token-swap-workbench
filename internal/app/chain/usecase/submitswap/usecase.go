@@ -43,5 +43,5 @@ func (uc UseCase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, fmt.Errorf("submitting swap: %w", err)
 	}
 
-	return Output{Status: "submitted"}, nil
+	return Output{Status: domain.StatusSubmitted}, nil
 }

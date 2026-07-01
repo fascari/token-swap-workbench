@@ -9,6 +9,7 @@ import (
 	chaintestdata "github.com/fascari/token-swap-workbench/internal/app/chain/testdata"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/quote"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/quote/mocks"
+	quotetestdata "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/quote/testdata"
 )
 
 func TestUseCase_Execute_ShouldReturnQuoteWhenClientQuotes(t *testing.T) {
@@ -19,14 +20,10 @@ func TestUseCase_Execute_ShouldReturnQuoteWhenClientQuotes(t *testing.T) {
 
 	uc := quote.NewUseCase(client)
 
-	output, err := uc.Execute(t.Context(), quote.Input{
-		InToken:  request.InToken,
-		OutToken: request.OutToken,
-		Amount:   request.Amount,
-	})
+	output, err := uc.Execute(t.Context(), quotetestdata.Input())
 
 	require.NoError(t, err)
-	require.Equal(t, quote.Output{AmountOut: expectedQuote.AmountOut}, output)
+	require.Equal(t, quotetestdata.Output(), output)
 }
 
 func TestUseCase_Execute_ShouldReturnErrorWhenClientQuoteFails(t *testing.T) {
@@ -37,11 +34,7 @@ func TestUseCase_Execute_ShouldReturnErrorWhenClientQuoteFails(t *testing.T) {
 
 	uc := quote.NewUseCase(client)
 
-	output, err := uc.Execute(t.Context(), quote.Input{
-		InToken:  request.InToken,
-		OutToken: request.OutToken,
-		Amount:   request.Amount,
-	})
+	output, err := uc.Execute(t.Context(), quotetestdata.Input())
 
 	require.Error(t, err)
 	require.ErrorIs(t, err, expectedErr)

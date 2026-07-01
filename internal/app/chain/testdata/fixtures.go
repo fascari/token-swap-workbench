@@ -45,20 +45,20 @@ func Blocks() []domain.Block {
 			Timestamp: BlockTime,
 			Transactions: []domain.Transaction{
 				{
-					Swap: &domain.SwapTransaction{
+					Swap: new(domain.SwapTransaction{
 						AccountID: AccountID,
 						InToken:   TokenUSDC,
 						OutToken:  TokenETH,
 						AmountIn:  SwapAmountIn,
-					},
+					}),
 				},
 				{
-					Send: &domain.SendTransaction{
+					Send: new(domain.SendTransaction{
 						From:   AccountID,
 						To:     RecipientID,
 						Amount: SendAmount,
 						Token:  TokenUSDC,
-					},
+					}),
 				},
 			},
 		},

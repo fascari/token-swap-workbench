@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/fascari/token-swap-workbench/internal/app/chain/domain"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/status"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/status/mocks"
+	statustestdata "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/status/testdata"
 )
 
 func TestUseCase_Execute_ShouldReturnOKWhenClientStatusSucceeds(t *testing.T) {
@@ -20,7 +20,7 @@ func TestUseCase_Execute_ShouldReturnOKWhenClientStatusSucceeds(t *testing.T) {
 	output, err := uc.Execute(t.Context(), status.Input{})
 
 	require.NoError(t, err)
-	require.Equal(t, status.Output{Status: domain.StatusOK}, output)
+	require.Equal(t, statustestdata.Output(), output)
 }
 
 func TestUseCase_Execute_ShouldReturnErrorWhenClientStatusFails(t *testing.T) {

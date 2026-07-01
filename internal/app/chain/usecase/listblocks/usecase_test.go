@@ -9,9 +9,12 @@ import (
 	chaintestdata "github.com/fascari/token-swap-workbench/internal/app/chain/testdata"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks/mocks"
+	listblockstestdata "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks/testdata"
 )
 
-const blockCount = 2
+const (
+	blockCount = 2
+)
 
 func TestUseCase_Execute_ShouldReturnBlocksWhenClientListsBlocks(t *testing.T) {
 	expectedBlocks := chaintestdata.Blocks()
@@ -23,7 +26,7 @@ func TestUseCase_Execute_ShouldReturnBlocksWhenClientListsBlocks(t *testing.T) {
 	output, err := uc.Execute(t.Context(), listblocks.Input{Count: blockCount})
 
 	require.NoError(t, err)
-	require.Equal(t, listblocks.Output{Blocks: expectedBlocks}, output)
+	require.Equal(t, listblockstestdata.Output(), output)
 }
 
 func TestUseCase_Execute_ShouldReturnErrorWhenClientListFails(t *testing.T) {
