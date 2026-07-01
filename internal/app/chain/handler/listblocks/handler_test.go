@@ -15,7 +15,9 @@ import (
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks/mocks"
 )
 
-const blockCount = 2
+const (
+	blockCount = 2
+)
 
 func TestHandler_Handle_ShouldReturnBlocksWhenRequestIsValid(t *testing.T) {
 	expectedBlocks := chaintestdata.Blocks()

@@ -28,7 +28,7 @@ func TestHandler_Handle_ShouldSubmitSwapWhenRequestIsValid(t *testing.T) {
 	handler.Handle(recorder, request)
 
 	require.Equal(t, http.StatusAccepted, recorder.Code)
-	require.JSONEq(t, `{"status":"submitted"}`, recorder.Body.String())
+	require.JSONEq(t, string(readResponse(t)), recorder.Body.String())
 }
 
 func TestHandler_Handle_ShouldReturnBadRequestWhenPayloadIsInvalid(t *testing.T) {
@@ -56,10 +56,44 @@ func TestHandler_Handle_ShouldReturnBadGatewayWhenSubmitFails(t *testing.T) {
 	require.Equal(t, http.StatusBadGateway, recorder.Code)
 }
 
+func TestHandler_Handle_ShouldReturnBadRequestWhenPayloadFailsValidation(t *testing.T) {
+	client := mocks.NewClient(t)
+	handler := submitswap.New(submitswapuc.NewUseCase(client))
+	request := httptest.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		"/chain/swaps",
+		bytes.NewReader(readInvalidRequest(t)),
+	)
+	recorder := httptest.NewRecorder()
+
+	handler.Handle(recorder, request)
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+}
+
 func readRequest(t *testing.T) []byte {
 	t.Helper()
 
 	body, err := os.ReadFile("testdata/swap_request.json")
+	require.NoError(t, err)
+
+	return body
+}
+
+func readResponse(t *testing.T) []byte {
+	t.Helper()
+
+	body, err := os.ReadFile("testdata/response.json")
+	require.NoError(t, err)
+
+	return body
+}
+
+func readInvalidRequest(t *testing.T) []byte {
+	t.Helper()
+
+	body, err := os.ReadFile("testdata/invalid_swap_request.json")
 	require.NoError(t, err)
 
 	return body

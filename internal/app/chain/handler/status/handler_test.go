@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,7 +24,7 @@ func TestHandler_Handle_ShouldReturnStatusWhenChainIsAvailable(t *testing.T) {
 	handler.Handle(recorder, request)
 
 	require.Equal(t, http.StatusOK, recorder.Code)
-	require.JSONEq(t, `{"status":"ok"}`, recorder.Body.String())
+	require.JSONEq(t, string(readResponse(t)), recorder.Body.String())
 }
 
 func TestHandler_Handle_ShouldReturnBadGatewayWhenChainStatusFails(t *testing.T) {
@@ -36,4 +37,13 @@ func TestHandler_Handle_ShouldReturnBadGatewayWhenChainStatusFails(t *testing.T)
 	handler.Handle(recorder, request)
 
 	require.Equal(t, http.StatusBadGateway, recorder.Code)
+}
+
+func readResponse(t *testing.T) []byte {
+	t.Helper()
+
+	body, err := os.ReadFile("testdata/response.json")
+	require.NoError(t, err)
+
+	return body
 }

@@ -65,12 +65,12 @@ func toSwapTransactionDTO(transaction *domain.SwapTransaction) *swapTransactionD
 		return nil
 	}
 
-	return &swapTransactionDTO{
+	return new(swapTransactionDTO{
 		AccountID: transaction.AccountID,
 		InToken:   string(transaction.InToken),
 		OutToken:  string(transaction.OutToken),
 		AmountIn:  transaction.AmountIn,
-	}
+	})
 }
 
 func toSendTransactionDTO(transaction *domain.SendTransaction) *sendTransactionDTO {
@@ -78,10 +78,10 @@ func toSendTransactionDTO(transaction *domain.SendTransaction) *sendTransactionD
 		return nil
 	}
 
-	return &sendTransactionDTO{
+	return new(sendTransactionDTO{
 		From:   transaction.From,
 		To:     transaction.To,
 		Amount: transaction.Amount,
 		Token:  string(transaction.Token),
-	}
+	})
 }

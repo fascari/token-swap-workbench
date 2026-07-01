@@ -1,19 +1,25 @@
 package status
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/fascari/token-swap-workbench/internal/app/chain/domain"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/status"
 	"github.com/fascari/token-swap-workbench/pkg/httpjson"
 )
 
-const path = "/chain/status"
+const (
+	path = "/chain/status"
+)
 
-type Handler struct {
-	useCase status.UseCase
-}
+type (
+	Handler struct {
+		useCase status.UseCase
+	}
+)
 
 func New(useCase status.UseCase) Handler {
 	return Handler{useCase: useCase}
@@ -26,7 +32,11 @@ func RegisterRoutes(r chi.Router, h Handler) {
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	output, err := h.useCase.Execute(r.Context(), status.Input{})
 	if err != nil {
-		httpjson.WriteError(w, http.StatusBadGateway, err)
+		code := http.StatusBadGateway
+		if errors.Is(err, domain.ErrUpstreamRejected) {
+			code = http.StatusBadRequest
+		}
+		httpjson.WriteError(w, code, err)
 		return
 	}
 

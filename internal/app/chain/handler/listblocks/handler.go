@@ -2,14 +2,14 @@ package listblocks
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/fascari/token-swap-workbench/internal/app/chain/domain"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks"
 	"github.com/fascari/token-swap-workbench/pkg/httpjson"
+	"github.com/fascari/token-swap-workbench/pkg/httpparam"
 )
 
 const (
@@ -17,9 +17,11 @@ const (
 	queryCount = "n"
 )
 
-type Handler struct {
-	useCase listblocks.UseCase
-}
+type (
+	Handler struct {
+		useCase listblocks.UseCase
+	}
+)
 
 func New(useCase listblocks.UseCase) Handler {
 	return Handler{useCase: useCase}
@@ -30,7 +32,7 @@ func RegisterRoutes(r chi.Router, h Handler) {
 }
 
 func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
-	count, err := positiveInt(r.URL.Query().Get(queryCount), queryCount)
+	count, err := httpparam.PositiveInt(r.URL.Query().Get(queryCount), queryCount)
 	if err != nil {
 		httpjson.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -38,26 +40,13 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.useCase.Execute(r.Context(), listblocks.Input{Count: count})
 	if err != nil {
-		httpjson.WriteError(w, http.StatusBadGateway, err)
+		status := http.StatusBadGateway
+		if errors.Is(err, domain.ErrUpstreamRejected) {
+			status = http.StatusBadRequest
+		}
+		httpjson.WriteError(w, status, err)
 		return
 	}
 
 	httpjson.WriteJSON(w, http.StatusOK, toResponse(output.Blocks))
-}
-
-func positiveInt(value string, field string) (int, error) {
-	if value == "" {
-		return 0, fmt.Errorf("%s is required", field)
-	}
-
-	number, err := strconv.Atoi(value)
-	if err != nil {
-		return 0, fmt.Errorf("%s must be an integer: %w", field, err)
-	}
-
-	if number <= 0 {
-		return 0, errors.New(field + " must be greater than 0")
-	}
-
-	return number, nil
 }
