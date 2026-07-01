@@ -1,57 +1,123 @@
 package chainclient
 
-const (
-	TokenUSDC Token = "USDC"
-	TokenUSDT Token = "USDT"
-	TokenETH  Token = "ETH"
-	TokenBTC  Token = "BTC"
-	TokenNEX  Token = "NEX"
-	TokenDOGE Token = "DOGE"
-	TokenHYPE Token = "HYPE"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/fascari/token-swap-workbench/internal/app/chain/domain"
 )
 
 type (
-	Token string
-
-	QuoteRequest struct {
-		InToken  Token
-		OutToken Token
-		Amount   float64
-	}
-
-	QuoteResponse struct {
+	quoteResponse struct {
 		AmountOut float64 `json:"amount_out"`
 	}
 
-	SwapRequest struct {
-		AccountID uint32  `json:"account"`
-		InToken   Token   `json:"in_token"`
-		OutToken  Token   `json:"out_token"`
-		AmountIn  float64 `json:"amount_in"`
+	swapRequest struct {
+		AccountID uint32       `json:"account"`
+		InToken   domain.Token `json:"in_token"`
+		OutToken  domain.Token `json:"out_token"`
+		AmountIn  float64      `json:"amount_in"`
 	}
 
-	Block struct {
+	swapEnvelope struct {
+		Swap swapRequest `json:"Swap"`
+	}
+
+	block struct {
 		ID           uint64        `json:"id"`
 		Timestamp    uint64        `json:"timestamp"`
-		Transactions []Transaction `json:"transactions"`
+		Transactions []transaction `json:"transactions"`
 	}
 
-	Transaction struct {
-		Swap *SwapTransaction `json:"Swap,omitzero"`
-		Send *SendTransaction `json:"Send,omitzero"`
+	transaction struct {
+		Swap *swapTransaction `json:"Swap,omitzero"`
+		Send *sendTransaction `json:"Send,omitzero"`
 	}
 
-	SwapTransaction struct {
-		AccountID uint32  `json:"account_id"`
-		InToken   Token   `json:"in_token"`
-		OutToken  Token   `json:"out_token"`
-		AmountIn  float64 `json:"amount_in"`
+	swapTransaction struct {
+		AccountID uint32       `json:"account_id"`
+		InToken   domain.Token `json:"in_token"`
+		OutToken  domain.Token `json:"out_token"`
+		AmountIn  float64      `json:"amount_in"`
 	}
 
-	SendTransaction struct {
-		From   uint32  `json:"from"`
-		To     uint32  `json:"to"`
-		Amount float64 `json:"amount"`
-		Token  Token   `json:"token"`
+	sendTransaction struct {
+		From   uint32       `json:"from"`
+		To     uint32       `json:"to"`
+		Amount float64      `json:"amount"`
+		Token  domain.Token `json:"token"`
+	}
+
+	responseError struct {
+		statusCode int
+		status     string
+		detail     string
 	}
 )
+
+func (e *responseError) Error() string {
+	if e.detail == "" {
+		return fmt.Sprintf("chain returned %s", e.status)
+	}
+
+	return fmt.Sprintf("chain returned %s: %s", e.status, e.detail)
+}
+
+func (e *responseError) clientRejected() bool {
+	return e.statusCode >= http.StatusBadRequest && e.statusCode < http.StatusInternalServerError
+}
+
+func toDomainBlocks(blocks []block) []domain.Block {
+	result := make([]domain.Block, 0, len(blocks))
+	for _, b := range blocks {
+		result = append(result, toDomainBlock(b))
+	}
+
+	return result
+}
+
+func toDomainBlock(b block) domain.Block {
+	transactions := make([]domain.Transaction, 0, len(b.Transactions))
+	for _, tx := range b.Transactions {
+		transactions = append(transactions, toDomainTransaction(tx))
+	}
+
+	return domain.Block{
+		ID:           b.ID,
+		Timestamp:    b.Timestamp,
+		Transactions: transactions,
+	}
+}
+
+func toDomainTransaction(tx transaction) domain.Transaction {
+	return domain.Transaction{
+		Swap: toDomainSwapTransaction(tx.Swap),
+		Send: toDomainSendTransaction(tx.Send),
+	}
+}
+
+func toDomainSwapTransaction(tx *swapTransaction) *domain.SwapTransaction {
+	if tx == nil {
+		return nil
+	}
+
+	return new(domain.SwapTransaction{
+		AccountID: tx.AccountID,
+		InToken:   tx.InToken,
+		OutToken:  tx.OutToken,
+		AmountIn:  tx.AmountIn,
+	})
+}
+
+func toDomainSendTransaction(tx *sendTransaction) *domain.SendTransaction {
+	if tx == nil {
+		return nil
+	}
+
+	return new(domain.SendTransaction{
+		From:   tx.From,
+		To:     tx.To,
+		Amount: tx.Amount,
+		Token:  tx.Token,
+	})
+}
