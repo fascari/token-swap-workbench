@@ -7,7 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Init configures the global zerolog logger with the given level.
 func Init(level ...string) {
 	logLevel := zerolog.InfoLevel
 	if len(level) > 0 {

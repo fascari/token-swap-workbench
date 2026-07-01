@@ -3,6 +3,9 @@
 *.out
 bin/
 .bin/
+build/
+node_modules/
+web/static/
 
 # Test cache and coverage
 *.test
@@ -31,3 +34,5 @@ Thumbs.db
 # !.copier-answers.yml
 
 /.codex/
+/graphify-out/
+/.plans/*

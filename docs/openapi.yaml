@@ -1,0 +1,260 @@
+openapi: 3.0.3
+info:
+  title: Token Swap Workbench API
+  version: 0.1.0
+  description: HTTP API exposed by the Go workbench in front of the Rust chain service.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /health:
+    get:
+      summary: Service health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+              example:
+                status: ok
+  /v1/chain/status:
+    get:
+      summary: Check upstream chain availability
+      operationId: getChainStatus
+      responses:
+        "200":
+          description: Rust chain service responded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+              example:
+                status: ok
+        "502":
+          description: Upstream chain service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/quote:
+    get:
+      summary: Get a token swap quote
+      operationId: getQuote
+      parameters:
+        - name: in
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Input token symbol
+          example: NEX
+        - name: out
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Output token symbol
+          example: ETH
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            exclusiveMinimum: 0
+          description: Input token amount
+          example: 10
+      responses:
+        "200":
+          description: Quote returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+              example:
+                amount_out: 9.900990099009901
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream chain service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/swaps:
+    post:
+      summary: Submit a token swap
+      operationId: submitSwap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SwapRequest"
+            example:
+              account_id: 2
+              in_token: NEX
+              out_token: ETH
+              amount_in: 10
+      responses:
+        "200":
+          description: Swap accepted by the upstream service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+              example:
+                status: submitted
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream chain service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/blocks:
+    get:
+      summary: Fetch recent blocks
+      operationId: getBlocks
+      parameters:
+        - name: n
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Number of recent blocks to fetch
+          example: 5
+      responses:
+        "200":
+          description: Recent blocks returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Block"
+              example:
+                - id: 605
+                  timestamp: 1782827305
+                  transactions:
+                    - Swap:
+                        account: 2
+                        in_token: NEX
+                        out_token: ETH
+                        amount_in: 10
+                        amount_out: 9.706853038245
+                - id: 606
+                  timestamp: 1782827306
+                  transactions: []
+        "400":
+          description: Invalid query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream chain service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    StatusResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+    QuoteResponse:
+      type: object
+      required:
+        - amount_out
+      properties:
+        amount_out:
+          type: number
+          format: double
+          example: 9.900990099009901
+    SwapRequest:
+      type: object
+      required:
+        - account_id
+        - in_token
+        - out_token
+        - amount_in
+      properties:
+        account_id:
+          type: integer
+          minimum: 1
+          example: 2
+        in_token:
+          type: string
+          example: NEX
+        out_token:
+          type: string
+          example: ETH
+        amount_in:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+          example: 10
+    Block:
+      type: object
+      required:
+        - id
+        - timestamp
+        - transactions
+      properties:
+        id:
+          type: integer
+          example: 605
+        timestamp:
+          type: integer
+          format: int64
+          example: 1782827305
+        transactions:
+          type: array
+          description: >
+            Upstream Rust transaction envelopes are returned as-is. The current
+            runtime uses externally tagged objects such as {"Swap": {...}}.
+          items:
+            $ref: "#/components/schemas/TransactionEnvelope"
+    TransactionEnvelope:
+      type: object
+      additionalProperties: true
+      example:
+        Swap:
+          account: 2
+          in_token: NEX
+          out_token: ETH
+          amount_in: 10
+          amount_out: 9.706853038245
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+          example: in is required

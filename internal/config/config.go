@@ -2,25 +2,32 @@ package config
 
 import "time"
 
-type Config struct {
-	App  AppConfig
-	HTTP HTTPConfig
-	Log  LogConfig
-}
+type (
+	Config struct {
+		App   AppConfig
+		HTTP  HTTPConfig
+		Log   LogConfig
+		Chain ChainConfig
+	}
 
-type AppConfig struct {
-	Name string
-	Env  string
-}
+	AppConfig struct {
+		Name string
+		Env  string
+	}
 
-type HTTPConfig struct {
-	Port         int
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	IdleTimeout  time.Duration
-}
+	HTTPConfig struct {
+		Port         int
+		ReadTimeout  time.Duration
+		WriteTimeout time.Duration
+		IdleTimeout  time.Duration
+	}
 
-type LogConfig struct {
-	Level  string
-	Format string
-}
+	LogConfig struct {
+		Level  string
+		Format string
+	}
+
+	ChainConfig struct {
+		BaseURL string
+	}
+)

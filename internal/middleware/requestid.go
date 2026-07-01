@@ -7,11 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type contextKey string
-
 const requestIDKey contextKey = "request_id"
 
-// RequestID is a middleware that generates a unique request ID for each request.
+type contextKey string
+
 func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := r.Header.Get("X-Request-ID")
@@ -25,7 +24,6 @@ func RequestID(next http.Handler) http.Handler {
 	})
 }
 
-// RequestIDFromContext retrieves the request ID from the context.
 func RequestIDFromContext(ctx context.Context) string {
 	if reqID, ok := ctx.Value(requestIDKey).(string); ok {
 		return reqID

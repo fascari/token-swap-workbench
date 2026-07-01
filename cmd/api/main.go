@@ -23,11 +23,10 @@ func main() {
 
 	bootstrap.InitLogger(cfg)
 
-	app, cleanup, err := bootstrap.New(ctx, cfg)
+	app, err := bootstrap.New(cfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to bootstrap application")
 	}
-	defer cleanup()
 
 	log.Info().Str("service", "token-swap-workbench").Msg("starting")
 	if err := app.Run(ctx); err != nil {

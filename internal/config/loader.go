@@ -18,19 +18,18 @@ func Load() (*Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// App defaults
 	viper.SetDefault("APP_NAME", "token-swap-workbench")
 	viper.SetDefault("APP_ENV", "development")
 
-	// HTTP defaults
 	viper.SetDefault("HTTP_PORT", 8080)
 	viper.SetDefault("HTTP_READ_TIMEOUT", "15s")
 	viper.SetDefault("HTTP_WRITE_TIMEOUT", "15s")
 	viper.SetDefault("HTTP_IDLE_TIMEOUT", "60s")
 
-	// Log defaults
 	viper.SetDefault("LOG_LEVEL", "info")
 	viper.SetDefault("LOG_FORMAT", "json")
+
+	viper.SetDefault("CHAIN_BASE_URL", "http://127.0.0.1:3000")
 
 	_ = viper.ReadInConfig()
 
@@ -63,6 +62,9 @@ func Load() (*Config, error) {
 		Log: LogConfig{
 			Level:  viper.GetString("LOG_LEVEL"),
 			Format: viper.GetString("LOG_FORMAT"),
+		},
+		Chain: ChainConfig{
+			BaseURL: viper.GetString("CHAIN_BASE_URL"),
 		},
 	}, nil
 }

@@ -1,0 +1,21 @@
+[
+  {
+    "id": 1,
+    "timestamp": 1710000000,
+    "transactions": []
+  },
+  {
+    "id": 2,
+    "timestamp": 1710000001,
+    "transactions": [
+      {
+        "Swap": {
+          "account_id": 2,
+          "in_token": "NEX",
+          "out_token": "ETH",
+          "amount_in": 10
+        }
+      }
+    ]
+  }
+]

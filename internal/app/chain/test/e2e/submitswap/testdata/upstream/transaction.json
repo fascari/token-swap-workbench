@@ -1,0 +1,8 @@
+{
+  "Swap": {
+    "account": 2,
+    "in_token": "NEX",
+    "out_token": "ETH",
+    "amount_in": 10
+  }
+}
