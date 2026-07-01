@@ -21,7 +21,7 @@ func TestListBlocksSuite(t *testing.T) {
 	suite.Run(t, new(ListBlocksSuite))
 }
 
-func (s *ListBlocksSuite) TestShouldReturnHistoryWhenForwardingLimit() {
+func (s *ListBlocksSuite) TestListBlocks_ShouldReturnHistory() {
 	s.ChainReturnsBlocks(s.ReadFile("testdata/upstream/blocks.json"))
 
 	response := s.Expect().GET("/v1/blocks").
@@ -37,7 +37,7 @@ func (s *ListBlocksSuite) TestShouldReturnHistoryWhenForwardingLimit() {
 	s.Equal("10", forwarded.Query.Get("n"))
 }
 
-func (s *ListBlocksSuite) TestShouldReturnBadGatewayWhenUpstreamPayloadIsMalformed() {
+func (s *ListBlocksSuite) TestListBlocks_ShouldReturnBadGatewayWhenUpstreamPayloadIsMalformed() {
 	s.ChainReturnsMalformedBlocks()
 
 	s.Expect().GET("/v1/blocks").

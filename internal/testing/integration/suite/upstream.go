@@ -39,7 +39,7 @@ type (
 )
 
 func newUpstream() *Upstream {
-	upstream := &Upstream{stubs: make(map[string]stub)}
+	upstream := new(Upstream{stubs: make(map[string]stub)})
 	upstream.server = httptest.NewServer(http.HandlerFunc(upstream.serve))
 
 	return upstream

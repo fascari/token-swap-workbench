@@ -21,7 +21,7 @@ func TestStatusSuite(t *testing.T) {
 	suite.Run(t, new(StatusSuite))
 }
 
-func (s *StatusSuite) TestShouldReturnOKWhenChainIsAvailable() {
+func (s *StatusSuite) TestStatus_ShouldReturnOKWhenChainIsAvailable() {
 	s.ChainReturnsBlocks(s.ReadFile("testdata/upstream/blocks.json"))
 
 	response := s.Expect().GET("/v1/chain/status").Expect()
@@ -35,7 +35,7 @@ func (s *StatusSuite) TestShouldReturnOKWhenChainIsAvailable() {
 	s.Equal("1", forwarded.Query.Get("n"))
 }
 
-func (s *StatusSuite) TestShouldReturnBadGatewayWhenChainIsUnavailable() {
+func (s *StatusSuite) TestStatus_ShouldReturnBadGatewayWhenChainIsUnavailable() {
 	s.ChainReturnsMalformedBlocks()
 
 	s.Expect().GET("/v1/chain/status").

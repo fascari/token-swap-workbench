@@ -22,7 +22,7 @@ func TestSubmitSwapSuite(t *testing.T) {
 	suite.Run(t, new(SubmitSwapSuite))
 }
 
-func (s *SubmitSwapSuite) TestShouldForwardSwapAsChainTransaction() {
+func (s *SubmitSwapSuite) TestSubmitSwap_ShouldForwardSwapAsChainTransaction() {
 	s.ChainAcceptsSwap()
 
 	response := s.Expect().POST("/v1/swaps").
@@ -38,7 +38,7 @@ func (s *SubmitSwapSuite) TestShouldForwardSwapAsChainTransaction() {
 	s.Require().JSONEq(s.ReadFile("testdata/upstream/transaction.json"), forwarded.Body)
 }
 
-func (s *SubmitSwapSuite) TestShouldReturnBadRequestWhenPayloadIsInvalid() {
+func (s *SubmitSwapSuite) TestSubmitSwap_ShouldReturnBadRequestWhenPayloadIsInvalid() {
 	s.Expect().POST("/v1/swaps").
 		WithText("not-json").
 		Expect().

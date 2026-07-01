@@ -21,7 +21,7 @@ func TestQuoteSuite(t *testing.T) {
 	suite.Run(t, new(QuoteSuite))
 }
 
-func (s *QuoteSuite) TestShouldReturnQuoteWhenUpstreamQuotes() {
+func (s *QuoteSuite) TestQuote_ShouldReturnQuote() {
 	s.ChainReturnsQuote(s.ReadFile("testdata/upstream/rate.json"))
 
 	response := s.Expect().GET("/v1/quote").
@@ -41,7 +41,7 @@ func (s *QuoteSuite) TestShouldReturnQuoteWhenUpstreamQuotes() {
 	s.Equal("10", forwarded.Query.Get("amount"))
 }
 
-func (s *QuoteSuite) TestShouldReturnBadGatewayWhenUpstreamFails() {
+func (s *QuoteSuite) TestQuote_ShouldReturnBadGatewayWhenUpstreamIsUnavailable() {
 	s.ChainFailsRate(http.StatusBadGateway)
 
 	s.Expect().GET("/v1/quote").
@@ -50,4 +50,15 @@ func (s *QuoteSuite) TestShouldReturnBadGatewayWhenUpstreamFails() {
 		WithQuery("amount", "10").
 		Expect().
 		Status(http.StatusBadGateway)
+}
+
+func (s *QuoteSuite) TestQuote_ShouldReturnBadRequestWhenUpstreamRejects() {
+	s.ChainFailsRate(http.StatusUnprocessableEntity)
+
+	s.Expect().GET("/v1/quote").
+		WithQuery("in", "NEX").
+		WithQuery("out", "ETH").
+		WithQuery("amount", "10").
+		Expect().
+		Status(http.StatusBadRequest)
 }
