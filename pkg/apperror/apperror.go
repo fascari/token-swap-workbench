@@ -5,11 +5,13 @@ import (
 	"fmt"
 )
 
-type AppError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	err     error
-}
+type (
+	AppError struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		err     error
+	}
+)
 
 func New(code string, message string, args ...any) AppError {
 	return AppError{
@@ -19,8 +21,7 @@ func New(code string, message string, args ...any) AppError {
 }
 
 func As(err error, code string) bool {
-	var appError AppError
-	if errors.As(err, &appError) {
+	if appError, ok := errors.AsType[AppError](err); ok {
 		return appError.Code == code
 	}
 	return false
