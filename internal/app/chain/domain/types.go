@@ -1,6 +1,9 @@
 package domain
 
-const StatusOK = "ok"
+const (
+	StatusOK        = "ok"
+	StatusSubmitted = "submitted"
+)
 
 type (
 	Token string
