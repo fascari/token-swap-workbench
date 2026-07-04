@@ -1,32 +1,34 @@
-package submitswap
+package transaction
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/fascari/token-swap-workbench/internal/app/chain/domain"
-	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/submitswap"
+	transactionuc "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/transaction"
 	"github.com/fascari/token-swap-workbench/pkg/httpjson"
 	"github.com/fascari/token-swap-workbench/pkg/validator"
 )
 
 const (
-	path = "/swaps"
+	path = "/transactions"
 )
 
 type (
 	Handler struct {
-		useCase submitswap.UseCase
+		useCase transactionuc.UseCase
 	}
 )
 
-func New(useCase submitswap.UseCase) Handler {
+func New(useCase transactionuc.UseCase) Handler {
 	return Handler{useCase: useCase}
 }
 
 func RegisterRoutes(r chi.Router, h Handler) {
+	h.RegisterRoutes(r)
+}
+
+func (h Handler) RegisterRoutes(r chi.Router) {
 	r.Post(path, h.Handle)
 }
 
@@ -42,18 +44,9 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := h.useCase.Execute(r.Context(), submitswap.Input{
-		AccountID: payload.AccountID,
-		InToken:   domain.Token(payload.InToken),
-		OutToken:  domain.Token(payload.OutToken),
-		AmountIn:  payload.AmountIn,
-	})
+	output, err := h.useCase.Execute(r.Context(), payload.toDomain())
 	if err != nil {
-		status := http.StatusBadGateway
-		if errors.Is(err, domain.ErrUpstreamRejected) {
-			status = http.StatusBadRequest
-		}
-		httpjson.WriteError(w, status, err)
+		httpjson.WriteError(w, http.StatusBadGateway, err)
 		return
 	}
 

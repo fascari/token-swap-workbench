@@ -38,6 +38,15 @@ func Swap() domain.Swap {
 	}
 }
 
+func Send() domain.Send {
+	return domain.Send{
+		From:   AccountID,
+		To:     RecipientID,
+		Amount: SendAmount,
+		Token:  TokenUSDC,
+	}
+}
+
 func Blocks() []domain.Block {
 	return []domain.Block{
 		{
