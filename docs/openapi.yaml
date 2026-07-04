@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Token Swap Workbench API
+  title: Token Transaction Workbench API
   version: 0.1.0
   description: HTTP API exposed by the Go workbench in front of the Rust chain service.
   license:
@@ -90,24 +90,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /v1/swaps:
+  /v1/transactions:
     post:
-      summary: Submit a token swap
-      operationId: submitSwap
+      summary: Submit a token transaction
+      operationId: submitTransaction
+      description: >
+        Generic public transaction endpoint. The current UI sends a swap-shaped
+        transaction payload, and the Go API forwards it to the Rust chain as a
+        `Swap` envelope through upstream `POST /transaction`.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SwapRequest"
+              $ref: "#/components/schemas/TransactionRequest"
             example:
               account_id: 2
               in_token: NEX
               out_token: ETH
               amount_in: 10
       responses:
-        "200":
-          description: Swap accepted by the upstream service
+        "202":
+          description: Transaction accepted by the upstream service
           content:
             application/json:
               schema:
@@ -122,6 +126,62 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "502":
           description: Upstream chain service error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/bots:
+    post:
+      summary: Control randomized chain bots
+      operationId: runBots
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotRequest"
+            examples:
+              create:
+                value:
+                  action: create
+                  amount: 10
+              stop:
+                value:
+                  action: stop
+                  amount: 5
+                  all: false
+              stop_all:
+                value:
+                  action: stop
+                  all: true
+      responses:
+        "202":
+          description: Bot command accepted by the workbench API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotResponse"
+              example:
+                status: running
+                action: create
+                requested_amount: 10
+                all: false
+                active_bots: 10
+                created_bots: 10
+                stopped_bots: 0
+                attempted_operations: 0
+                accepted_operations: 0
+                failed_operations: 0
+                send_operations: 0
+                swap_operations: 0
+        "400":
+          description: Invalid bot command
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Bot manager error
           content:
             application/json:
               schema:
@@ -192,8 +252,12 @@ components:
           type: number
           format: double
           example: 9.900990099009901
-    SwapRequest:
+    TransactionRequest:
       type: object
+      description: >
+        Public transaction payload currently used for swap submissions. The
+        endpoint remains generic so other transaction kinds can be added
+        without creating operation-specific public routes.
       required:
         - account_id
         - in_token
@@ -215,6 +279,80 @@ components:
           format: double
           exclusiveMinimum: 0
           example: 10
+    BotRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum:
+            - create
+            - stop
+          example: create
+        amount:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Required for create and quantity-based stop commands. Ignored when all is true.
+          example: 10
+        all:
+          type: boolean
+          description: Stops every active bot when action is stop.
+          default: false
+          example: false
+    BotResponse:
+      type: object
+      required:
+        - status
+        - action
+        - requested_amount
+        - all
+        - active_bots
+        - created_bots
+        - stopped_bots
+        - attempted_operations
+        - accepted_operations
+        - failed_operations
+        - send_operations
+        - swap_operations
+      properties:
+        status:
+          type: string
+          example: running
+        action:
+          type: string
+          example: create
+        requested_amount:
+          type: integer
+          example: 10
+        all:
+          type: boolean
+          example: false
+        active_bots:
+          type: integer
+          example: 10
+        created_bots:
+          type: integer
+          example: 10
+        stopped_bots:
+          type: integer
+          example: 0
+        attempted_operations:
+          type: integer
+          example: 0
+        accepted_operations:
+          type: integer
+          example: 0
+        failed_operations:
+          type: integer
+          example: 0
+        send_operations:
+          type: integer
+          example: 0
+        swap_operations:
+          type: integer
+          example: 0
     Block:
       type: object
       required:

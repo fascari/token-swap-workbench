@@ -46,7 +46,7 @@ swaps, repeating the same quote later can return a different `amount_out`.
 
 The `Submit Swap` action executes the token exchange.
 
-1. The frontend sends `POST /v1/swaps` with the selected account, token pair,
+1. The frontend sends `POST /v1/transactions` with the selected account, token pair,
    and input amount.
 2. The Go API forwards the request to the Rust service.
 3. The Rust service accepts the swap transaction and returns a submission
