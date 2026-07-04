@@ -184,6 +184,13 @@ select {
   color: #0f172a;
 }
 
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
 .quote-output {
   display: flex;
   align-items: end;
@@ -219,6 +226,57 @@ select {
 
 .blocks-control label {
   width: 120px;
+}
+
+.bot-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px auto;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bot-all-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: #0f172a;
+}
+
+.bot-all-toggle[data-disabled="true"] {
+  color: #94a3b8;
+}
+
+.bot-all-toggle input {
+  width: 16px;
+  min-height: 16px;
+  padding: 0;
+  accent-color: #0f766e;
+}
+
+.bot-all-toggle span {
+  margin: 0;
+  color: inherit;
+  font-weight: 700;
+}
+
+.bot-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.bot-summary span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.bot-summary strong {
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 .blocks-hint {
@@ -317,10 +375,15 @@ select {
   }
 
   .quote-output,
+  .bot-control,
   .blocks-control,
   .block-row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .bot-control {
+    display: flex;
   }
 
   .block-row time {
