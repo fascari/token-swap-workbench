@@ -4,8 +4,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"strconv"
 	"testing"
 
@@ -30,7 +28,7 @@ func TestClient_Quote_ShouldReturnQuote(t *testing.T) {
 		require.Equal(t, strconv.FormatFloat(chainclienttestdata.AmountIn, 'f', -1, 64), r.URL.Query().Get("amount"))
 
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write(readFixture(t, "quote_response.json"))
+		_, err := w.Write([]byte(chainclienttestdata.QuoteResponse))
 		require.NoError(t, err)
 	}))
 	t.Cleanup(server.Close)
@@ -57,14 +55,30 @@ func TestClient_Quote_ShouldReturnUpstreamRejectedWhenChainReturns4xx(t *testing
 	require.Equal(t, domain.Quote{}, result)
 }
 
-func TestClient_SubmitSwap_ShouldPostSwapEnvelope(t *testing.T) {
+func TestClient_SubmitTransaction_ShouldPostSendEnvelope(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Equal(t, "/transaction", r.URL.Path)
+		require.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		require.JSONEq(t, chainclienttestdata.SendEnvelope, readBody(t, r))
+		w.WriteHeader(http.StatusAccepted)
+	}))
+	defer server.Close()
+
+	client, err := chainclient.New(config.ChainConfig{BaseURL: server.URL})
+	require.NoError(t, err)
+
+	err = client.SubmitTransaction(t.Context(), chainclienttestdata.SendSubmission())
+
+	require.NoError(t, err)
+}
+
+func TestClient_SubmitTransaction_ShouldPostSwapEnvelope(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPost, r.Method)
 		require.Equal(t, "/transaction", r.URL.Path)
 
-		body, err := os.ReadFile("testdata/swap_envelope.json")
-		require.NoError(t, err)
-		require.JSONEq(t, string(body), readBody(t, r))
+		require.JSONEq(t, chainclienttestdata.SwapEnvelope, readBody(t, r))
 
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -72,12 +86,12 @@ func TestClient_SubmitSwap_ShouldPostSwapEnvelope(t *testing.T) {
 
 	client := newClient(t, server.URL)
 
-	err := client.SubmitSwap(t.Context(), chainclienttestdata.Swap())
+	err := client.SubmitTransaction(t.Context(), chainclienttestdata.SwapSubmission())
 
 	require.NoError(t, err)
 }
 
-func TestClient_SubmitSwap_ShouldReturnUpstreamRejectedWhenChainReturns4xx(t *testing.T) {
+func TestClient_SubmitTransaction_ShouldReturnUpstreamRejectedWhenChainReturns4xx(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "rejected", http.StatusConflict)
 	}))
@@ -85,7 +99,7 @@ func TestClient_SubmitSwap_ShouldReturnUpstreamRejectedWhenChainReturns4xx(t *te
 
 	client := newClient(t, server.URL)
 
-	err := client.SubmitSwap(t.Context(), chainclienttestdata.Swap())
+	err := client.SubmitTransaction(t.Context(), chainclienttestdata.SwapSubmission())
 
 	require.ErrorIs(t, err, domain.ErrUpstreamRejected)
 }
@@ -97,7 +111,7 @@ func TestClient_Blocks_ShouldReturnBlocks(t *testing.T) {
 		require.Equal(t, strconv.Itoa(blockCount), r.URL.Query().Get("n"))
 
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write(readFixture(t, "blocks_response.json"))
+		_, err := w.Write([]byte(chainclienttestdata.BlocksResponse))
 		require.NoError(t, err)
 	}))
 	t.Cleanup(server.Close)
@@ -146,15 +160,6 @@ func newClient(t *testing.T, baseURL string) *chainclient.Client {
 	require.NoError(t, err)
 
 	return client
-}
-
-func readFixture(t *testing.T, name string) []byte {
-	t.Helper()
-
-	data, err := os.ReadFile(filepath.Join("testdata", name))
-	require.NoError(t, err)
-
-	return data
 }
 
 func readBody(t *testing.T, r *http.Request) string {

@@ -3,6 +3,9 @@ package domain
 const (
 	StatusOK        = "ok"
 	StatusSubmitted = "submitted"
+
+	TransactionKindSend TransactionKind = "send"
+	TransactionKindSwap TransactionKind = "swap"
 )
 
 type (
@@ -16,13 +19,6 @@ type (
 
 	Quote struct {
 		AmountOut float64
-	}
-
-	Swap struct {
-		AccountID uint32
-		InToken   Token
-		OutToken  Token
-		AmountIn  float64
 	}
 
 	Block struct {
@@ -48,5 +44,27 @@ type (
 		To     uint32
 		Amount float64
 		Token  Token
+	}
+
+	TransactionKind string
+
+	Swap struct {
+		AccountID uint32
+		InToken   Token
+		OutToken  Token
+		AmountIn  float64
+	}
+
+	Send struct {
+		From   uint32
+		To     uint32
+		Amount float64
+		Token  Token
+	}
+
+	TransactionSubmission struct {
+		Kind TransactionKind
+		Send Send
+		Swap Swap
 	}
 )

@@ -1,7 +1,6 @@
 package chainclient
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -78,41 +77,6 @@ func (c Client) Quote(ctx context.Context, req domain.QuoteRequest) (domain.Quot
 	}
 
 	return domain.Quote{AmountOut: quote.AmountOut}, nil
-}
-
-func (c Client) SubmitSwap(ctx context.Context, swap domain.Swap) error {
-	payload := swapEnvelope{Swap: swapRequest{
-		AccountID: swap.AccountID,
-		InToken:   swap.InToken,
-		OutToken:  swap.OutToken,
-		AmountIn:  swap.AmountIn,
-	}}
-
-	var body bytes.Buffer
-	if err := json.NewEncoder(&body).Encode(payload); err != nil {
-		return classify(fmt.Errorf("encoding chain swap transaction: %w", err))
-	}
-
-	endpoint := c.endpoint("transaction")
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint.String(), &body)
-	if err != nil {
-		return classify(fmt.Errorf("building chain swap request: %w", err))
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		return classify(fmt.Errorf("submitting chain swap: %w", err))
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if err := ensureSuccess(resp); err != nil {
-		return classify(fmt.Errorf("submitting chain swap: %w", err))
-	}
-
-	return nil
 }
 
 func (c Client) Blocks(ctx context.Context, n int) ([]domain.Block, error) {

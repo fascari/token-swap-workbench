@@ -18,11 +18,12 @@ type (
 		OutToken  domain.Token `json:"out_token"`
 		AmountIn  float64      `json:"amount_in"`
 	}
-
-	swapEnvelope struct {
-		Swap swapRequest `json:"Swap"`
+	sendRequest struct {
+		From   uint32       `json:"from"`
+		To     uint32       `json:"to"`
+		Amount float64      `json:"amount"`
+		Token  domain.Token `json:"token"`
 	}
-
 	block struct {
 		ID           uint64        `json:"id"`
 		Timestamp    uint64        `json:"timestamp"`
@@ -52,6 +53,11 @@ type (
 		statusCode int
 		status     string
 		detail     string
+	}
+
+	transactionEnvelope struct {
+		Send *sendRequest `json:"Send,omitempty"`
+		Swap *swapRequest `json:"Swap,omitempty"`
 	}
 )
 

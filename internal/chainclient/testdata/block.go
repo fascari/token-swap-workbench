@@ -2,10 +2,6 @@ package testdata
 
 import "github.com/fascari/token-swap-workbench/internal/app/chain/domain"
 
-func Quote() domain.Quote {
-	return domain.Quote{AmountOut: AmountOut}
-}
-
 func Blocks() []domain.Block {
 	return []domain.Block{
 		{

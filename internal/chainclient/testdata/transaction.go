@@ -14,19 +14,34 @@ const (
 	TokenETH    domain.Token = "ETH"
 )
 
-func QuoteRequest() domain.QuoteRequest {
-	return domain.QuoteRequest{
-		InToken:  TokenUSDC,
-		OutToken: TokenETH,
-		Amount:   AmountIn,
-	}
-}
-
 func Swap() domain.Swap {
 	return domain.Swap{
 		AccountID: AccountID,
 		InToken:   TokenUSDC,
 		OutToken:  TokenETH,
 		AmountIn:  AmountIn,
+	}
+}
+
+func Send() domain.Send {
+	return domain.Send{
+		From:   AccountID,
+		To:     RecipientID,
+		Amount: SendAmount,
+		Token:  TokenUSDC,
+	}
+}
+
+func SwapSubmission() domain.TransactionSubmission {
+	return domain.TransactionSubmission{
+		Kind: domain.TransactionKindSwap,
+		Swap: Swap(),
+	}
+}
+
+func SendSubmission() domain.TransactionSubmission {
+	return domain.TransactionSubmission{
+		Kind: domain.TransactionKindSend,
+		Send: Send(),
 	}
 }
