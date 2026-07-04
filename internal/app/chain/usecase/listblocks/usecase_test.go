@@ -21,7 +21,7 @@ func TestUseCase_Execute_ShouldReturnBlocksWhenClientListsBlocks(t *testing.T) {
 	client := mocks.NewClient(t)
 	client.EXPECT().Blocks(t.Context(), blockCount).Return(expectedBlocks, nil)
 
-	uc := listblocks.NewUseCase(client)
+	uc := listblocks.New(client)
 
 	output, err := uc.Execute(t.Context(), listblocks.Input{Count: blockCount})
 
@@ -34,7 +34,7 @@ func TestUseCase_Execute_ShouldReturnErrorWhenClientListFails(t *testing.T) {
 	client := mocks.NewClient(t)
 	client.EXPECT().Blocks(t.Context(), blockCount).Return(nil, expectedErr)
 
-	uc := listblocks.NewUseCase(client)
+	uc := listblocks.New(client)
 
 	output, err := uc.Execute(t.Context(), listblocks.Input{Count: blockCount})
 

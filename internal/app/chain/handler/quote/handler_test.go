@@ -2,84 +2,67 @@ package quote_test
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"os"
+	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/fascari/token-swap-workbench/internal/app/chain/handler/quote"
+	quotefixtures "github.com/fascari/token-swap-workbench/internal/app/chain/handler/quote/testdata"
 	chaintestdata "github.com/fascari/token-swap-workbench/internal/app/chain/testdata"
 	quoteuc "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/quote"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/quote/mocks"
+	"github.com/fascari/token-swap-workbench/pkg/handlertest"
 )
 
-func TestHandler_Handle_ShouldReturnQuoteWhenRequestIsValid(t *testing.T) {
+type (
+	QuoteSuite struct {
+		handlertest.Suite
+	}
+)
+
+func TestQuoteSuite(t *testing.T) {
+	suite.Run(t, new(QuoteSuite))
+}
+
+func (s *QuoteSuite) TestHandler_Handle_ShouldReturnQuote() {
 	quoteRequest := chaintestdata.QuoteRequest()
-	expectedQuote := chaintestdata.Quote()
-	client := mocks.NewClient(t)
-	client.EXPECT().Quote(t.Context(), quoteRequest).Return(expectedQuote, nil)
-	handler := quote.New(quoteuc.NewUseCase(client))
-	request := httptest.NewRequestWithContext(
-		t.Context(),
-		http.MethodGet,
-		fmt.Sprintf(
-			"/chain/quote?in=%s&out=%s&amount=%.1f",
-			quoteRequest.InToken,
-			quoteRequest.OutToken,
-			quoteRequest.Amount,
-		),
-		nil,
+	client := mocks.NewClient(s.T())
+	client.EXPECT().Quote(s.T().Context(), quoteRequest).Return(chaintestdata.Quote(), nil)
+	handler := quote.New(quoteuc.New(client))
+
+	s.Serve(handler.Handle, http.MethodGet, "/chain/quote",
+		handlertest.WithQuery("in", string(quoteRequest.InToken)),
+		handlertest.WithQuery("out", string(quoteRequest.OutToken)),
+		handlertest.WithQuery("amount", strconv.FormatFloat(quoteRequest.Amount, 'f', -1, 64)),
 	)
-	recorder := httptest.NewRecorder()
 
-	handler.Handle(recorder, request)
-
-	require.Equal(t, http.StatusOK, recorder.Code)
-	require.JSONEq(t, string(readResponse(t)), recorder.Body.String())
+	s.RequireJSONResponse(http.StatusOK, quotefixtures.Response)
 }
 
-func TestHandler_Handle_ShouldReturnBadRequestWhenAmountIsMissing(t *testing.T) {
-	client := mocks.NewClient(t)
-	handler := quote.New(quoteuc.NewUseCase(client))
-	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/chain/quote?in=NEX&out=ETH", nil)
-	recorder := httptest.NewRecorder()
+func (s *QuoteSuite) TestHandler_Handle_ShouldReturnBadRequestWhenAmountIsMissing() {
+	handler := quote.New(quoteuc.New(mocks.NewClient(s.T())))
 
-	handler.Handle(recorder, request)
+	s.Serve(handler.Handle, http.MethodGet, "/chain/quote",
+		handlertest.WithQuery("in", string(chaintestdata.TokenUSDC)),
+		handlertest.WithQuery("out", string(chaintestdata.TokenETH)),
+	)
 
-	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	s.RequireStatus(http.StatusBadRequest)
 }
 
-func TestHandler_Handle_ShouldReturnBadGatewayWhenQuoteFails(t *testing.T) {
+func (s *QuoteSuite) TestHandler_Handle_ShouldReturnBadGatewayWhenQuoteFails() {
 	quoteRequest := chaintestdata.QuoteRequest()
-	client := mocks.NewClient(t)
-	client.EXPECT().Quote(t.Context(), quoteRequest).Return(chaintestdata.Quote(), errors.New("quote unavailable"))
-	handler := quote.New(quoteuc.NewUseCase(client))
-	request := httptest.NewRequestWithContext(
-		t.Context(),
-		http.MethodGet,
-		fmt.Sprintf(
-			"/chain/quote?in=%s&out=%s&amount=%.1f",
-			quoteRequest.InToken,
-			quoteRequest.OutToken,
-			quoteRequest.Amount,
-		),
-		nil,
+	client := mocks.NewClient(s.T())
+	client.EXPECT().Quote(s.T().Context(), quoteRequest).Return(chaintestdata.Quote(), errors.New("quote unavailable"))
+	handler := quote.New(quoteuc.New(client))
+
+	s.Serve(handler.Handle, http.MethodGet, "/chain/quote",
+		handlertest.WithQuery("in", string(quoteRequest.InToken)),
+		handlertest.WithQuery("out", string(quoteRequest.OutToken)),
+		handlertest.WithQuery("amount", strconv.FormatFloat(quoteRequest.Amount, 'f', -1, 64)),
 	)
-	recorder := httptest.NewRecorder()
 
-	handler.Handle(recorder, request)
-
-	require.Equal(t, http.StatusBadGateway, recorder.Code)
-}
-
-func readResponse(t *testing.T) []byte {
-	t.Helper()
-
-	body, err := os.ReadFile("testdata/response.json")
-	require.NoError(t, err)
-
-	return body
+	s.RequireStatus(http.StatusBadGateway)
 }

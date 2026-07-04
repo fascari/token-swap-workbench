@@ -27,7 +27,7 @@ type (
 	}
 )
 
-func NewUseCase(client Client) UseCase {
+func New(client Client) UseCase {
 	return UseCase{client: client}
 }
 

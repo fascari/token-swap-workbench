@@ -3,64 +3,57 @@ package listblocks_test
 import (
 	"errors"
 	"net/http"
-	"net/http/httptest"
-	"os"
+	"strconv"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/fascari/token-swap-workbench/internal/app/chain/handler/listblocks"
+	listblocksfixtures "github.com/fascari/token-swap-workbench/internal/app/chain/handler/listblocks/testdata"
 	chaintestdata "github.com/fascari/token-swap-workbench/internal/app/chain/testdata"
 	listblocksuc "github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks"
 	"github.com/fascari/token-swap-workbench/internal/app/chain/usecase/listblocks/mocks"
+	"github.com/fascari/token-swap-workbench/pkg/handlertest"
 )
 
 const (
 	blockCount = 2
 )
 
-func TestHandler_Handle_ShouldReturnBlocksWhenRequestIsValid(t *testing.T) {
-	expectedBlocks := chaintestdata.Blocks()
-	client := mocks.NewClient(t)
-	client.EXPECT().Blocks(t.Context(), blockCount).Return(expectedBlocks, nil)
-	handler := listblocks.New(listblocksuc.NewUseCase(client))
-	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/chain/blocks?n=2", nil)
-	recorder := httptest.NewRecorder()
+type (
+	ListBlocksSuite struct {
+		handlertest.Suite
+	}
+)
 
-	handler.Handle(recorder, request)
-
-	require.Equal(t, http.StatusOK, recorder.Code)
-	require.JSONEq(t, string(readResponse(t)), recorder.Body.String())
+func TestListBlocksSuite(t *testing.T) {
+	suite.Run(t, new(ListBlocksSuite))
 }
 
-func TestHandler_Handle_ShouldReturnBadRequestWhenCountIsInvalid(t *testing.T) {
-	client := mocks.NewClient(t)
-	handler := listblocks.New(listblocksuc.NewUseCase(client))
-	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/chain/blocks?n=bad", nil)
-	recorder := httptest.NewRecorder()
+func (s *ListBlocksSuite) TestHandler_Handle_ShouldReturnBlocks() {
+	client := mocks.NewClient(s.T())
+	client.EXPECT().Blocks(s.T().Context(), blockCount).Return(chaintestdata.Blocks(), nil)
+	handler := listblocks.New(listblocksuc.New(client))
 
-	handler.Handle(recorder, request)
+	s.Serve(handler.Handle, http.MethodGet, "/chain/blocks", handlertest.WithQuery("n", strconv.Itoa(blockCount)))
 
-	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	s.RequireJSONResponse(http.StatusOK, listblocksfixtures.BlocksResponse)
 }
 
-func TestHandler_Handle_ShouldReturnBadGatewayWhenClientListFails(t *testing.T) {
-	client := mocks.NewClient(t)
-	client.EXPECT().Blocks(t.Context(), blockCount).Return(nil, errors.New("blocks unavailable"))
-	handler := listblocks.New(listblocksuc.NewUseCase(client))
-	request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/chain/blocks?n=2", nil)
-	recorder := httptest.NewRecorder()
+func (s *ListBlocksSuite) TestHandler_Handle_ShouldReturnBadRequestWhenCountIsInvalid() {
+	handler := listblocks.New(listblocksuc.New(mocks.NewClient(s.T())))
 
-	handler.Handle(recorder, request)
+	s.Serve(handler.Handle, http.MethodGet, "/chain/blocks", handlertest.WithQuery("n", "bad"))
 
-	require.Equal(t, http.StatusBadGateway, recorder.Code)
+	s.RequireStatus(http.StatusBadRequest)
 }
 
-func readResponse(t *testing.T) []byte {
-	t.Helper()
+func (s *ListBlocksSuite) TestHandler_Handle_ShouldReturnBadGatewayWhenClientListFails() {
+	client := mocks.NewClient(s.T())
+	client.EXPECT().Blocks(s.T().Context(), blockCount).Return(nil, errors.New("blocks unavailable"))
+	handler := listblocks.New(listblocksuc.New(client))
 
-	body, err := os.ReadFile("testdata/blocks_response.json")
-	require.NoError(t, err)
+	s.Serve(handler.Handle, http.MethodGet, "/chain/blocks", handlertest.WithQuery("n", strconv.Itoa(blockCount)))
 
-	return body
+	s.RequireStatus(http.StatusBadGateway)
 }

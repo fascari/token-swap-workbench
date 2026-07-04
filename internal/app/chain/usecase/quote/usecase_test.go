@@ -18,7 +18,7 @@ func TestUseCase_Execute_ShouldReturnQuoteWhenClientQuotes(t *testing.T) {
 	client := mocks.NewClient(t)
 	client.EXPECT().Quote(t.Context(), request).Return(expectedQuote, nil)
 
-	uc := quote.NewUseCase(client)
+	uc := quote.New(client)
 
 	output, err := uc.Execute(t.Context(), quotetestdata.Input())
 
@@ -32,7 +32,7 @@ func TestUseCase_Execute_ShouldReturnErrorWhenClientQuoteFails(t *testing.T) {
 	client := mocks.NewClient(t)
 	client.EXPECT().Quote(t.Context(), request).Return(chaintestdata.Quote(), expectedErr)
 
-	uc := quote.NewUseCase(client)
+	uc := quote.New(client)
 
 	output, err := uc.Execute(t.Context(), quotetestdata.Input())
 

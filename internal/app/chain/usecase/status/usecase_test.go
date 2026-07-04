@@ -15,7 +15,7 @@ func TestUseCase_Execute_ShouldReturnOKWhenClientStatusSucceeds(t *testing.T) {
 	client := mocks.NewClient(t)
 	client.EXPECT().Status(t.Context()).Return(nil)
 
-	uc := status.NewUseCase(client)
+	uc := status.New(client)
 
 	output, err := uc.Execute(t.Context(), status.Input{})
 
@@ -28,7 +28,7 @@ func TestUseCase_Execute_ShouldReturnErrorWhenClientStatusFails(t *testing.T) {
 	client := mocks.NewClient(t)
 	client.EXPECT().Status(t.Context()).Return(expectedErr)
 
-	uc := status.NewUseCase(client)
+	uc := status.New(client)
 
 	output, err := uc.Execute(t.Context(), status.Input{})
 
