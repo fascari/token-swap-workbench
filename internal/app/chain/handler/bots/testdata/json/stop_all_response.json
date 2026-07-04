@@ -1,0 +1,14 @@
+{
+  "action": "stop",
+  "requested_amount": 2,
+  "all": true,
+  "status": "stopped",
+  "active_bots": 0,
+  "created_bots": 0,
+  "stopped_bots": 2,
+  "attempted_operations": 0,
+  "accepted_operations": 0,
+  "failed_operations": 0,
+  "send_operations": 0,
+  "swap_operations": 0
+}

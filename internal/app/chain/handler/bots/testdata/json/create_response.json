@@ -1,0 +1,14 @@
+{
+  "action": "create",
+  "requested_amount": 2,
+  "all": false,
+  "status": "running",
+  "active_bots": 2,
+  "created_bots": 2,
+  "stopped_bots": 0,
+  "attempted_operations": 0,
+  "accepted_operations": 0,
+  "failed_operations": 0,
+  "send_operations": 0,
+  "swap_operations": 0
+}
