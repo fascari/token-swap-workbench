@@ -1,50 +1,12 @@
-export type ChainStatus = {
-  status: string;
-};
-
-export type QuoteResponse = {
-  amount_out: number;
-};
-
-export type TransactionRequest = {
-  account_id: number;
-  in_token: string;
-  out_token: string;
-  amount_in: number;
-};
-
-export type TransactionResponse = {
-  status: string;
-};
-
-export type BotAction = "create" | "stop";
-
-export type BotRequest = {
-  action: BotAction;
-  amount?: number;
-  all?: boolean;
-};
-
-export type BotResponse = {
-  status: string;
-  action: string;
-  requested_amount: number;
-  all: boolean;
-  active_bots: number;
-  created_bots: number;
-  stopped_bots: number;
-  attempted_operations: number;
-  accepted_operations: number;
-  failed_operations: number;
-  send_operations: number;
-  swap_operations: number;
-};
-
-export type Block = {
-  id: number;
-  timestamp: number;
-  transactions: unknown[];
-};
+import type {
+  Block,
+  BotRequest,
+  BotResponse,
+  ChainStatus,
+  QuoteResponse,
+  TransactionRequest,
+  TransactionResponse,
+} from "./types";
 
 async function requestJSON<T>(url: RequestInfo, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
@@ -71,12 +33,7 @@ export function fetchQuote(
   outToken: string,
   amount: number,
 ): Promise<QuoteResponse> {
-  const query = new URLSearchParams({
-    in: inToken,
-    out: outToken,
-    amount: String(amount),
-  });
-
+  const query = new URLSearchParams({ in: inToken, out: outToken, amount: String(amount) });
   return requestJSON<QuoteResponse>(`/v1/quote?${query.toString()}`);
 }
 
