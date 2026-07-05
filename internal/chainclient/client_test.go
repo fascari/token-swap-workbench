@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/fascari/token-swap-workbench/internal/app/chain/domain"
+	chaintestdata "github.com/fascari/token-swap-workbench/internal/app/chain/testdata"
 	"github.com/fascari/token-swap-workbench/internal/chainclient"
 	chainclienttestdata "github.com/fascari/token-swap-workbench/internal/chainclient/testdata"
 	"github.com/fascari/token-swap-workbench/internal/config"
@@ -23,8 +24,8 @@ func TestClient_Quote_ShouldReturnQuote(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodGet, r.Method)
 		require.Equal(t, "/rate", r.URL.Path)
-		require.Equal(t, string(chainclienttestdata.TokenUSDC), r.URL.Query().Get("in"))
-		require.Equal(t, string(chainclienttestdata.TokenETH), r.URL.Query().Get("out"))
+		require.Equal(t, string(chaintestdata.TokenUSDC), r.URL.Query().Get("in"))
+		require.Equal(t, string(chaintestdata.TokenETH), r.URL.Query().Get("out"))
 		require.Equal(t, strconv.FormatFloat(chainclienttestdata.AmountIn, 'f', -1, 64), r.URL.Query().Get("amount"))
 
 		w.WriteHeader(http.StatusOK)

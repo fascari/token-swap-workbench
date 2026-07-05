@@ -55,19 +55,19 @@ func transactionPayload(transaction domain.TransactionSubmission) (transactionEn
 }
 
 func sendPayload(send domain.Send) *sendRequest {
-	return &sendRequest{
+	return new(sendRequest{
 		From:   send.From,
 		To:     send.To,
 		Token:  send.Token,
 		Amount: send.Amount,
-	}
+	})
 }
 
 func swapPayload(swap domain.Swap) *swapRequest {
-	return &swapRequest{
+	return new(swapRequest{
 		AccountID: swap.AccountID,
 		InToken:   swap.InToken,
 		OutToken:  swap.OutToken,
 		AmountIn:  swap.AmountIn,
-	}
+	})
 }
