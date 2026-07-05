@@ -25,10 +25,6 @@ func New(useCase transactionuc.UseCase) Handler {
 }
 
 func RegisterRoutes(r chi.Router, h Handler) {
-	h.RegisterRoutes(r)
-}
-
-func (h Handler) RegisterRoutes(r chi.Router) {
 	r.Post(path, h.Handle)
 }
 
@@ -46,7 +42,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.useCase.Execute(r.Context(), payload.toDomain())
 	if err != nil {
-		httpjson.WriteError(w, http.StatusBadGateway, err)
+		httpjson.WriteError(w, errorCode(err), err)
 		return
 	}
 

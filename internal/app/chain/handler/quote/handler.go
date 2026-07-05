@@ -1,7 +1,6 @@
 package quote
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -58,11 +57,7 @@ func (h Handler) Handle(w http.ResponseWriter, r *http.Request) {
 		Amount:   amount,
 	})
 	if err != nil {
-		status := http.StatusBadGateway
-		if errors.Is(err, domain.ErrUpstreamRejected) {
-			status = http.StatusBadRequest
-		}
-		httpjson.WriteError(w, status, err)
+		httpjson.WriteError(w, errorCode(err), err)
 		return
 	}
 
